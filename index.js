@@ -10,6 +10,22 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+// Verify JWT Token
+function verifyJwt(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    res.status(401).send({ message: "Unauthorized Access" });
+  }
+  const token = authHeader.split(" ")[1];
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
+    if (err) {
+      res.status(403).send({ message: "Forbidden To Access" });
+    }
+    req.decoded = decoded;
+    next();
+  });
+}
+
 // MongoDB connection
 const uri = `mongodb+srv://${process.env.DB_ADMIN}:${process.env.DB_PASS}@cluster0.nka8o.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
@@ -25,8 +41,9 @@ async function run() {
     // Database Collection
     const partsCollection = client.db("pitsTop").collection("parts");
     const userCollection = client.db("pitsTop").collection("users");
+    const reviewCollection = client.db("pitsTop").collection("reviews");
 
-    // Login authentication
+    // User set on login and registration authentication API
     app.put("/user/:email", async (req, res) => {
       const email = req.params.email;
       const user = req.body;
@@ -43,13 +60,21 @@ async function run() {
       );
       res.send({ result, token: token });
     });
+
+    // Add A Review Post API
+    app.post("/review", verifyJwt, async (req, res) => {
+      const review = req.body;
+      console.log(review);
+      const result = await reviewCollection.insertOne(review);
+      res.send(result);
+    });
   } finally {
   }
 }
 run().catch(console.dir);
 
 app.get("/", (req, res) => {
-  res.send("Hello World!");
+  res.send("Hello PitsTop!");
 });
 
 app.listen(port, () => {
