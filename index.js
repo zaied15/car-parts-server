@@ -42,6 +42,7 @@ async function run() {
     const partsCollection = client.db("pitsTop").collection("parts");
     const userCollection = client.db("pitsTop").collection("users");
     const reviewCollection = client.db("pitsTop").collection("reviews");
+    const profileCollection = client.db("pitsTop").collection("profiles");
 
     // User set on login and registration authentication API
     app.put("/user/:email", async (req, res) => {
@@ -66,6 +67,29 @@ async function run() {
       const review = req.body;
       console.log(review);
       const result = await reviewCollection.insertOne(review);
+      res.send(result);
+    });
+
+    // All Reviews Get API
+    app.get("/review", async (req, res) => {
+      const result = await reviewCollection.find().toArray();
+      res.send(result);
+    });
+
+    // Profile update API
+    app.put("/profile/:email", async (req, res) => {
+      const email = req.params.email;
+      const profile = req.body;
+      const filter = { email: email };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: profile,
+      };
+      const result = await profileCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
       res.send(result);
     });
   } finally {
