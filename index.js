@@ -43,6 +43,7 @@ async function run() {
     const userCollection = client.db("pitsTop").collection("users");
     const reviewCollection = client.db("pitsTop").collection("reviews");
     const profileCollection = client.db("pitsTop").collection("profiles");
+    const orderCollection = client.db("pitsTop").collection("order");
 
     // Get all parts from DB API
     app.get("/parts", async (req, res) => {
@@ -75,10 +76,16 @@ async function run() {
       res.send({ result, token: token });
     });
 
+    // Add Purchase Item to DB API
+    app.post("/order", async (req, res) => {
+      const order = req.body;
+      const result = await orderCollection.insertOne(order);
+      res.send(result);
+    });
+
     // Add A Review Post API
     app.post("/review", verifyJwt, async (req, res) => {
       const review = req.body;
-      console.log(review);
       const result = await reviewCollection.insertOne(review);
       res.send(result);
     });
