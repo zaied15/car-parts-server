@@ -45,11 +45,19 @@ async function run() {
     const profileCollection = client.db("pitsTop").collection("profiles");
     const orderCollection = client.db("pitsTop").collection("order");
 
+    // Post A part into DB API
+    app.post("/parts", verifyJwt, async (req, res) => {
+      const parts = req.body;
+      const result = await partsCollection.insertOne(parts);
+      res.send(result);
+    });
+
     // Get all parts from DB API
     app.get("/parts", async (req, res) => {
       const result = await partsCollection.find().toArray();
       res.send(result);
     });
+
     // Get a specific parts from DB API
     app.get("/parts/:id", async (req, res) => {
       const id = req.params.id;
@@ -83,7 +91,13 @@ async function run() {
       res.send(result);
     });
 
-    // Get All Orders By email
+    // Get All Orders
+    app.get("/order", verifyJwt, async (req, res) => {
+      const result = await orderCollection.find().toArray();
+      res.send(result);
+    });
+
+    // Get Orders By email
     app.get("/order", verifyJwt, async (req, res) => {
       const email = req.query.email;
       console.log(email);
