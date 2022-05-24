@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 5000;
@@ -44,6 +44,19 @@ async function run() {
     const reviewCollection = client.db("pitsTop").collection("reviews");
     const profileCollection = client.db("pitsTop").collection("profiles");
 
+    // Get all parts from DB API
+    app.get("/parts", async (req, res) => {
+      const result = await partsCollection.find().toArray();
+      res.send(result);
+    });
+    // Get a specific parts from DB API
+    app.get("/parts/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await partsCollection.findOne(query);
+      res.send(result);
+    });
+
     // User set on login and registration authentication API
     app.put("/user/:email", async (req, res) => {
       const email = req.params.email;
@@ -77,7 +90,7 @@ async function run() {
     });
 
     // Profile update API
-    app.put("/profile/:email", async (req, res) => {
+    app.put("/profile/:email", verifyJwt, async (req, res) => {
       const email = req.params.email;
       const profile = req.body;
       const filter = { email: email };
