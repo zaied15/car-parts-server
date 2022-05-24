@@ -77,9 +77,18 @@ async function run() {
     });
 
     // Add Purchase Item to DB API
-    app.post("/order", async (req, res) => {
+    app.post("/order", verifyJwt, async (req, res) => {
       const order = req.body;
       const result = await orderCollection.insertOne(order);
+      res.send(result);
+    });
+
+    // Get All Orders By email
+    app.get("/order", verifyJwt, async (req, res) => {
+      const email = req.query.email;
+      console.log(email);
+      const query = { email: email };
+      const result = await orderCollection.find(query).toArray();
       res.send(result);
     });
 
