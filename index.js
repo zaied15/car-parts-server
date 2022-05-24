@@ -84,6 +84,12 @@ async function run() {
       res.send({ result, token: token });
     });
 
+    // All User Get API
+    app.get("/users", verifyJwt, async (req, res) => {
+      const result = await userCollection.find().toArray();
+      res.send(result);
+    });
+
     // Add Purchase Item to DB API
     app.post("/order", verifyJwt, async (req, res) => {
       const order = req.body;
@@ -122,18 +128,33 @@ async function run() {
     // Profile update API
     app.put("/profile/:email", verifyJwt, async (req, res) => {
       const email = req.params.email;
+      const decodedEmail = req.decoded.email;
       const profile = req.body;
       const filter = { email: email };
       const options = { upsert: true };
       const updateDoc = {
         $set: profile,
       };
-      const result = await profileCollection.updateOne(
-        filter,
-        updateDoc,
-        options
-      );
-      res.send(result);
+      if (email === decodedEmail) {
+        const result = await profileCollection.updateOne(
+          filter,
+          updateDoc,
+          options
+        );
+        res.send(result);
+      }
+    });
+
+    // Admin Role Check API
+    app.get("/admin/:email", verifyJwt, async (req, res) => {
+      const email = req.params.email;
+      const decodedEmail = req.decoded.email;
+      const query = { email: email };
+      if (email === decodedEmail) {
+        const user = await userCollection.findOne(query);
+        const isAdmin = user.role === "admin";
+        res.send({ admin: isAdmin });
+      }
     });
   } finally {
   }
