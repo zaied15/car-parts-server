@@ -66,6 +66,14 @@ async function run() {
       res.send(result);
     });
 
+    // Delete a specific product from DB API
+    app.delete("/parts/:id", verifyJwt, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await partsCollection.deleteOne(query);
+      res.send(result);
+    });
+
     // User set on login and registration authentication API
     app.put("/user/:email", async (req, res) => {
       const email = req.params.email;
@@ -88,6 +96,28 @@ async function run() {
     app.get("/users", verifyJwt, async (req, res) => {
       const result = await userCollection.find().toArray();
       res.send(result);
+    });
+
+    // Set user Role API
+    app.patch("/admin/:email", verifyJwt, async (req, res) => {
+      const email = req.params.email;
+      const filter = { email: email };
+      const updateDoc = {
+        $set: { role: "admin" },
+      };
+      const result = await userCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+    // Admin Role Check API
+    app.get("/admin/:email", verifyJwt, async (req, res) => {
+      const email = req.params.email;
+      const decodedEmail = req.decoded.email;
+      const query = { email: email };
+      if (email === decodedEmail) {
+        const user = await userCollection.findOne(query);
+        const isAdmin = user.role === "admin";
+        res.send({ admin: isAdmin });
+      }
     });
 
     // Add Purchase Item to DB API
@@ -142,18 +172,6 @@ async function run() {
           options
         );
         res.send(result);
-      }
-    });
-
-    // Admin Role Check API
-    app.get("/admin/:email", verifyJwt, async (req, res) => {
-      const email = req.params.email;
-      const decodedEmail = req.decoded.email;
-      const query = { email: email };
-      if (email === decodedEmail) {
-        const user = await userCollection.findOne(query);
-        const isAdmin = user.role === "admin";
-        res.send({ admin: isAdmin });
       }
     });
   } finally {
