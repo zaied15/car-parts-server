@@ -59,7 +59,7 @@ async function run() {
     });
 
     // Get a specific parts from DB API
-    app.get("/parts/:id", async (req, res) => {
+    app.get("/parts/:id", verifyJwt, async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const result = await partsCollection.findOne(query);
@@ -128,7 +128,7 @@ async function run() {
     });
 
     // Get All Orders
-    app.get("/order", verifyJwt, async (req, res) => {
+    app.get("/orders", verifyJwt, async (req, res) => {
       const result = await orderCollection.find().toArray();
       res.send(result);
     });
@@ -136,9 +136,16 @@ async function run() {
     // Get Orders By email
     app.get("/order", verifyJwt, async (req, res) => {
       const email = req.query.email;
-      console.log(email);
       const query = { email: email };
       const result = await orderCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    // Get Order by Id
+    app.get("/order/:id", verifyJwt, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await orderCollection.findOne(query);
       res.send(result);
     });
 
