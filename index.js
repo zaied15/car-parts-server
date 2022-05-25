@@ -45,6 +45,7 @@ async function run() {
     const reviewCollection = client.db("pitsTop").collection("reviews");
     const profileCollection = client.db("pitsTop").collection("profiles");
     const orderCollection = client.db("pitsTop").collection("order");
+    const paymentCollection = client.db("pitsTop").collection("payment");
 
     // Post A part into DB API
     app.post("/parts", verifyJwt, async (req, res) => {
@@ -150,8 +151,16 @@ async function run() {
       res.send(result);
     });
 
+    // Delete Order By Admin API
+    app.delete("/adminOrderDelete/:id", verifyJwt, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await orderCollection.deleteOne(query);
+      res.send(result);
+    });
+
     // Payment API
-    app.post("/create-payment-intent", async (req, res) => {
+    app.post("/create-payment-intent", verifyJwt, async (req, res) => {
       const price = req.body.price;
       const amount = price * 100;
       const paymentIntent = await stripe.paymentIntents.create({
@@ -160,6 +169,46 @@ async function run() {
         payment_method_types: ["card"],
       });
       res.send({ clientSecret: paymentIntent.client_secret });
+    });
+
+    // Store paid order in new collection and update order
+    app.patch("/paidOrder/:id", verifyJwt, async (req, res) => {
+      const id = req.params.id;
+      const payment = req.body;
+      const filter = { _id: ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          paid: true,
+          transactionId: payment.transactionId,
+        },
+      };
+      const result = await paymentCollection.insertOne(payment);
+      const updatedOrder = await orderCollection.updateOne(filter, updatedDoc);
+      res.send(updatedDoc);
+    });
+
+    // Shipping Status update on order collection and payment collection
+    app.patch("/shippingStatus/:id", verifyJwt, async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          shipping_status: true,
+        },
+      };
+      const updatedShippingStatus = await orderCollection.updateOne(
+        filter,
+        updatedDoc
+      );
+      res.send(updatedShippingStatus);
+    });
+
+    // Delete My Order API
+    app.delete("/myOrder/:id", verifyJwt, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await orderCollection.deleteOne(query);
+      res.send(result);
     });
 
     // Add A Review Post API
