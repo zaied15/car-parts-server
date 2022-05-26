@@ -1,8 +1,12 @@
-# Getting Started with Create React App
+# [Pitstop Car Parts Dealer](https://car-parts-auth-a92ca.web.app/)
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Projects Features
 
-## Available Scripts
+- express is used
+- dotenv used for security of credentials
+- jwt has been used for authorization
+- Mongodb used for database
+- Heroku used for live database
 
 In the project directory, you can run:
 
