@@ -56,7 +56,7 @@ async function run() {
 
     // Get all parts from DB API
     app.get("/parts", async (req, res) => {
-      const result = await partsCollection.find().toArray();
+      const result = await partsCollection.find().sort({ _id: -1 }).toArray();
       res.send(result);
     });
 
@@ -220,7 +220,7 @@ async function run() {
 
     // All Reviews Get API
     app.get("/review", async (req, res) => {
-      const result = await reviewCollection.find().toArray();
+      const result = await reviewCollection.find().sort({ _id: -1 }).toArray();
       res.send(result);
     });
 
